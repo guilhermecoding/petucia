@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "concurrently -k -n next,serial -c blue,magenta \"next dev\" \"tsx --env-file .env.local scripts/serial-bridge.ts\"",
+    "dev:web": "next dev",
     "serial": "tsx --env-file .env.local scripts/serial-bridge.ts",
     "build": "next build",
     "start": "next start",
@@ -17,6 +18,7 @@
     "serialport": "^13.0.0"
   },
   "devDependencies": {
+    "concurrently": "^9.1.2",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

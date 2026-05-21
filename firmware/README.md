@@ -20,7 +20,6 @@ Baud rate: **9600**. A primeira leitura é enviada logo ao ligar; as seguintes, 
 
 ## Ler no Next.js
 
-Em um terminal: `pnpm dev`  
-Em outro: `pnpm serial` (abre a porta definida em `ARDUINO_PORT` no `.env.local`)
+`pnpm dev` sobe o site e a leitura serial juntos (porta em `ARDUINO_PORT` no `.env.local`).
 
 Feche o Monitor Serial do Arduino IDE antes — só um programa pode usar a COM.
