@@ -11,6 +11,9 @@ type RawArduinoPayload = {
   error?: string;
 };
 
+/** Firmware envia a cada 10 s; após isso a leitura é considerada velha. */
+const STALE_READING_MS = 25_000;
+
 const emptyState = (): PersistedSensorState => ({
   connected: false,
   reading: null,
@@ -51,6 +54,19 @@ class SensorStore {
 
   async getStatus(): Promise<SensorStatus> {
     const state = (await loadPersistedState()) ?? emptyState();
+
+    if (
+      state.reading &&
+      Date.now() - state.reading.receivedAt > STALE_READING_MS
+    ) {
+      return {
+        connected: false,
+        reading: null,
+        message: "Sem leituras recentes do Arduino...",
+        zone: null,
+        zoneDurationMs: 0,
+      };
+    }
 
     const { message, zone, zoneDurationMs } = buildStatus(
       state.connected,

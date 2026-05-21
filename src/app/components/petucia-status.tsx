@@ -70,6 +70,12 @@ export function PetuciaStatus() {
         <p className="text-sm text-white/75">
           Aguardando primeira leitura do Arduino (alguns segundos).
         </p>
+      ) : status.message === "Sem leituras recentes do Arduino..." ? (
+        <p className="text-sm text-white/75">
+          Use <code className="rounded bg-white/20 px-1 text-white">pnpm start</code>{" "}
+          (site + serial) ou rode <code className="rounded bg-white/20 px-1 text-white">pnpm serial</code>{" "}
+          junto com o servidor. Feche o Monitor Serial do Arduino IDE.
+        </p>
       ) : !status.connected ? (
         <p className="text-sm text-white/75">
           Conecte o Arduino via USB e defina{" "}
