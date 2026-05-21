@@ -3,29 +3,26 @@ import { SerialPort } from "serialport";
 
 import { sensorStore } from "./store";
 
-let started = false;
+type SerialGlobal = {
+  __petuciaSerialPort?: SerialPort;
+  __petuciaSerialInitiated?: boolean;
+};
 
-export function startArduinoSerial() {
-  if (started) return;
-  started = true;
+const globalStore = globalThis as typeof globalThis & SerialGlobal;
 
-  const portPath = process.env.ARDUINO_PORT;
-  if (!portPath) {
-    console.warn(
-      "[petucia] Defina ARDUINO_PORT (ex.: COM3) no .env.local para ler o Arduino.",
-    );
-    return;
-  }
-
-  const port = new SerialPort({ path: portPath, baudRate: 9600 });
+function attachListeners(port: SerialPort, portPath: string) {
   const parser = port.pipe(new ReadlineParser({ delimiter: "\n" }));
 
   parser.on("data", (line: string) => {
+    const trimmed = line.trim();
+    if (!trimmed.startsWith("{")) return;
+
     try {
-      const data = JSON.parse(line.trim()) as Record<string, unknown>;
+      const data = JSON.parse(trimmed) as Record<string, unknown>;
       sensorStore.addReading(data);
+      console.log("[petucia] Leitura recebida:", trimmed);
     } catch {
-      console.warn("[petucia] Linha serial ignorada:", line);
+      console.warn("[petucia] Linha serial ignorada:", trimmed);
     }
   });
 
@@ -40,4 +37,41 @@ export function startArduinoSerial() {
     console.error("[petucia] Erro na porta serial:", err.message);
     sensorStore.setConnected(false);
   });
+}
+
+export function startArduinoSerial() {
+  const existing = globalStore.__petuciaSerialPort;
+  if (existing?.isOpen || existing?.opening) {
+    return;
+  }
+  if (globalStore.__petuciaSerialInitiated) {
+    return;
+  }
+  globalStore.__petuciaSerialInitiated = true;
+
+  const portPath = process.env.ARDUINO_PORT;
+  if (!portPath) {
+    globalStore.__petuciaSerialInitiated = false;
+    console.warn(
+      "[petucia] Defina ARDUINO_PORT (ex.: COM6) no .env.local para ler o Arduino.",
+    );
+    return;
+  }
+
+  const port = new SerialPort({ path: portPath, baudRate: 9600 }, (err) => {
+    if (err) {
+      globalStore.__petuciaSerialPort = undefined;
+      globalStore.__petuciaSerialInitiated = false;
+      console.error("[petucia] Erro ao abrir porta serial:", err.message);
+      if (err.message.includes("Access denied")) {
+        console.error(
+          "[petucia] A porta está em uso. Feche o Monitor Serial do Arduino IDE e reinicie o servidor (pnpm dev).",
+        );
+      }
+      sensorStore.setConnected(false);
+    }
+  });
+
+  globalStore.__petuciaSerialPort = port;
+  attachListeners(port, portPath);
 }

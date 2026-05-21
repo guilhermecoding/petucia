@@ -4,8 +4,7 @@ import { sensorStore } from "@/lib/sensors/store";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-startArduinoSerial();
-
 export async function GET() {
-  return Response.json(sensorStore.getStatus());
+  startArduinoSerial();
+  return Response.json(await sensorStore.getStatus());
 }

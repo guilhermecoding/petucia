@@ -42,7 +42,17 @@ export function buildStatus(
   zone: MoistureZone | null;
   zoneDurationMs: number;
 } {
-  if (!connected || !reading || zone === null || zoneEnteredAt === null) {
+  if (!reading) {
+    return {
+      message: connected
+        ? "Conectada! Aguardando primeira leitura..."
+        : "Aguardando leituras do Arduino...",
+      zone: null,
+      zoneDurationMs: 0,
+    };
+  }
+
+  if (zone === null || zoneEnteredAt === null) {
     return {
       message: "Aguardando leituras do Arduino...",
       zone: null,

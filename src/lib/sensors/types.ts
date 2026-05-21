@@ -9,7 +9,8 @@ export type PetuciaMessage =
   | "Estou bem tranquila"
   | "Estou bem, mas estou ficando com sede"
   | "Estou com sede"
-  | "Aguardando leituras do Arduino...";
+  | "Aguardando leituras do Arduino..."
+  | "Conectada! Aguardando primeira leitura...";
 
 export type SensorStatus = {
   connected: boolean;

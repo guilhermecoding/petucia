@@ -1,8 +1,9 @@
 import { buildStatus, soilMoistureToZone } from "./messages";
+import { loadPersistedState, savePersistedState } from "./persist";
 import type { MoistureZone, SensorReading, SensorStatus } from "./types";
 
 type RawArduinoPayload = {
-  soil_moisture?: number;
+  soil_moisture?: number | string;
   error?: string;
 };
 
@@ -11,17 +12,43 @@ class SensorStore {
   private reading: SensorReading | null = null;
   private zone: MoistureZone | null = null;
   private zoneEnteredAt: number | null = null;
+  private hydrated = false;
+
+  private async hydrate() {
+    if (this.hydrated) return;
+    this.hydrated = true;
+
+    const saved = await loadPersistedState();
+    if (!saved) return;
+
+    this.connected = saved.connected;
+    this.reading = saved.reading;
+    this.zone = saved.zone;
+    this.zoneEnteredAt = saved.zoneEnteredAt;
+  }
+
+  private persist() {
+    void savePersistedState({
+      connected: this.connected,
+      reading: this.reading,
+      zone: this.zone,
+      zoneEnteredAt: this.zoneEnteredAt,
+    });
+  }
 
   setConnected(connected: boolean) {
     this.connected = connected;
+    this.persist();
   }
 
   addReading(raw: RawArduinoPayload) {
     if (raw.error) return;
-    if (raw.soil_moisture === undefined) return;
+
+    const soilMoisture = Number(raw.soil_moisture);
+    if (Number.isNaN(soilMoisture)) return;
 
     const now = Date.now();
-    const nextZone = soilMoistureToZone(raw.soil_moisture);
+    const nextZone = soilMoistureToZone(soilMoisture);
 
     if (this.zone !== nextZone) {
       this.zone = nextZone;
@@ -29,13 +56,16 @@ class SensorStore {
     }
 
     this.reading = {
-      soil_moisture: raw.soil_moisture,
+      soil_moisture: soilMoisture,
       receivedAt: now,
     };
     this.connected = true;
+    this.persist();
   }
 
-  getStatus(): SensorStatus {
+  async getStatus(): Promise<SensorStatus> {
+    await this.hydrate();
+
     const { message, zone, zoneDurationMs } = buildStatus(
       this.connected,
       this.reading,
