@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 import type { SensorStatus } from "@/lib/sensors/types";
 
-const POLL_INTERVAL_MS = 5_000;
+const POLL_INTERVAL_MS = 3_000;
 
 export function PetuciaStatus() {
   const [status, setStatus] = useState<SensorStatus | null>(null);
@@ -51,7 +51,7 @@ export function PetuciaStatus() {
 
   return (
     <div className="space-y-3">
-      <p className="text-2xl font-medium leading-snug">{status.message}</p>
+      <p className="text-6xl font-bold leading-snug">{status.message}</p>
 
       {status.connected && (
         <p className="text-xs font-medium text-green-700">Arduino conectado</p>

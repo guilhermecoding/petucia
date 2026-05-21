@@ -16,20 +16,20 @@ export function soilMoistureToZone(value: number): MoistureZone {
 export function getMessageForZone(
   zone: MoistureZone,
   zoneDurationMs: number,
-): PetuciaMessage {
+): string {
   if (zone === "thirsty" && zoneDurationMs >= THIRSTY_AFTER_MS) {
-    return "Estou com sede";
+    return "Estou com sede 🥵";
   }
   if (zone === "warning" && zoneDurationMs >= WARNING_AFTER_MS) {
-    return "Estou bem, mas estou ficando com sede";
+    return "Estou bem, mas estou ficando com sede 😕";
   }
   if (zone === "thirsty" && zoneDurationMs < THIRSTY_AFTER_MS) {
-    return "Estou bem, mas estou ficando com sede";
+    return "Estou bem, mas estou ficando com sede 😕";
   }
   if (zone === "comfortable") {
-    return "Estou bem tranquila";
+    return "Estou bem tranquila 😌";
   }
-  return "Estou bem tranquila";
+  return "Estou bem tranquila 😌";
 }
 
 export function buildStatus(
@@ -38,7 +38,7 @@ export function buildStatus(
   zone: MoistureZone | null,
   zoneEnteredAt: number | null,
 ): {
-  message: PetuciaMessage;
+  message: string;
   zone: MoistureZone | null;
   zoneDurationMs: number;
 } {

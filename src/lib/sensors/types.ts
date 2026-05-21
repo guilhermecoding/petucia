@@ -6,9 +6,9 @@ export type SensorReading = {
 export type MoistureZone = "comfortable" | "warning" | "thirsty";
 
 export type PetuciaMessage =
-  | "Estou bem tranquila"
-  | "Estou bem, mas estou ficando com sede"
-  | "Estou com sede"
+  | "Estou bem tranquila 😌"
+  | "Estou bem, mas estou ficando com sede 😕"
+  | "Estou com sede 🥵"
   | "Aguardando leituras do Arduino..."
   | "Conectada! Aguardando primeira leitura...";
 
