@@ -2,6 +2,8 @@ import Image from "next/image";
 
 import { PetuciaStatus } from "./components/petucia-status";
 
+export const dynamic = "force-dynamic";
+
 export default function Home() {
   return (
     <div className="flex min-h-screen flex-row items-center gap-8 p-6 md:p-10">
