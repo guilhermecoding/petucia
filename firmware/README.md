@@ -16,4 +16,11 @@ A cada 10 s o Arduino envia uma linha JSON, por exemplo:
 {"soil_moisture":512}
 ```
 
-Baud rate: **9600**.
+Baud rate: **9600**. A primeira leitura é enviada logo ao ligar; as seguintes, a cada 10 s.
+
+## Ler no Next.js
+
+Em um terminal: `pnpm dev`  
+Em outro: `pnpm serial` (abre a porta definida em `ARDUINO_PORT` no `.env.local`)
+
+Feche o Monitor Serial do Arduino IDE antes — só um programa pode usar a COM.

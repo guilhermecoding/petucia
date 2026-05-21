@@ -9,8 +9,6 @@ void setup() {
 }
 
 void loop() {
-  delay(10000);
-
   int valorUmidadeSolo = analogRead(pinoUmidadeSolo);
 
   doc.clear();
@@ -18,4 +16,6 @@ void loop() {
 
   serializeJson(doc, Serial);
   Serial.println();
+
+  delay(10000);
 }

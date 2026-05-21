@@ -14,28 +14,32 @@ function attachListeners(port: SerialPort, portPath: string) {
   const parser = port.pipe(new ReadlineParser({ delimiter: "\n" }));
 
   parser.on("data", (line: string) => {
-    const trimmed = line.trim();
-    if (!trimmed.startsWith("{")) return;
+    void (async () => {
+      const trimmed = line.trim();
+      if (!trimmed.startsWith("{")) return;
 
-    try {
-      const data = JSON.parse(trimmed) as Record<string, unknown>;
-      sensorStore.addReading(data);
-      console.log("[petucia] Leitura recebida:", trimmed);
-    } catch {
-      console.warn("[petucia] Linha serial ignorada:", trimmed);
-    }
+      try {
+        const data = JSON.parse(trimmed) as Record<string, unknown>;
+        await sensorStore.addReading(data);
+        console.log("[petucia] Leitura recebida:", trimmed);
+      } catch {
+        console.warn("[petucia] Linha serial ignorada:", trimmed);
+      }
+    })();
   });
 
   port.on("open", () => {
     console.log(`[petucia] Arduino conectado em ${portPath}`);
-    sensorStore.setConnected(true);
+    void sensorStore.setConnected(true);
   });
 
-  port.on("close", () => sensorStore.setConnected(false));
+  port.on("close", () => {
+    void sensorStore.setConnected(false);
+  });
 
   port.on("error", (err) => {
     console.error("[petucia] Erro na porta serial:", err.message);
-    sensorStore.setConnected(false);
+    void sensorStore.setConnected(false);
   });
 }
 
@@ -65,10 +69,10 @@ export function startArduinoSerial() {
       console.error("[petucia] Erro ao abrir porta serial:", err.message);
       if (err.message.includes("Access denied")) {
         console.error(
-          "[petucia] A porta está em uso. Feche o Monitor Serial do Arduino IDE e reinicie o servidor (pnpm dev).",
+          "[petucia] A porta está em uso. Feche o Monitor Serial do Arduino IDE e reinicie (pnpm dev).",
         );
       }
-      sensorStore.setConnected(false);
+      void sensorStore.setConnected(false);
     }
   });
 

@@ -64,7 +64,9 @@ export function PetuciaStatus() {
         </p>
       ) : waitingForReading ? (
         <p className="text-sm text-neutral-500">
-          Primeira leitura em até 10 segundos (intervalo do firmware).
+          Rode <code className="rounded bg-neutral-100 px-1">pnpm serial</code> em
+          outro terminal (porta no .env.local). A primeira leitura chega logo após
+          conectar.
         </p>
       ) : !status.connected ? (
         <p className="text-sm text-neutral-500">

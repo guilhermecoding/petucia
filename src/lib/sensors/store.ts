@@ -1,81 +1,67 @@
 import { buildStatus, soilMoistureToZone } from "./messages";
-import { loadPersistedState, savePersistedState } from "./persist";
-import type { MoistureZone, SensorReading, SensorStatus } from "./types";
+import {
+  loadPersistedState,
+  savePersistedState,
+  type PersistedSensorState,
+} from "./persist";
+import type { SensorStatus } from "./types";
 
 type RawArduinoPayload = {
   soil_moisture?: number | string;
   error?: string;
 };
 
+const emptyState = (): PersistedSensorState => ({
+  connected: false,
+  reading: null,
+  zone: null,
+  zoneEnteredAt: null,
+});
+
 class SensorStore {
-  private connected = false;
-  private reading: SensorReading | null = null;
-  private zone: MoistureZone | null = null;
-  private zoneEnteredAt: number | null = null;
-  private hydrated = false;
-
-  private async hydrate() {
-    if (this.hydrated) return;
-    this.hydrated = true;
-
-    const saved = await loadPersistedState();
-    if (!saved) return;
-
-    this.connected = saved.connected;
-    this.reading = saved.reading;
-    this.zone = saved.zone;
-    this.zoneEnteredAt = saved.zoneEnteredAt;
+  async setConnected(connected: boolean) {
+    const state = (await loadPersistedState()) ?? emptyState();
+    state.connected = connected;
+    await savePersistedState(state);
   }
 
-  private persist() {
-    void savePersistedState({
-      connected: this.connected,
-      reading: this.reading,
-      zone: this.zone,
-      zoneEnteredAt: this.zoneEnteredAt,
-    });
-  }
-
-  setConnected(connected: boolean) {
-    this.connected = connected;
-    this.persist();
-  }
-
-  addReading(raw: RawArduinoPayload) {
+  async addReading(raw: RawArduinoPayload) {
     if (raw.error) return;
 
     const soilMoisture = Number(raw.soil_moisture);
     if (Number.isNaN(soilMoisture)) return;
 
+    const state = (await loadPersistedState()) ?? emptyState();
     const now = Date.now();
     const nextZone = soilMoistureToZone(soilMoisture);
 
-    if (this.zone !== nextZone) {
-      this.zone = nextZone;
-      this.zoneEnteredAt = now;
+    if (state.zone !== nextZone) {
+      state.zone = nextZone;
+      state.zoneEnteredAt = now;
     }
 
-    this.reading = {
+    state.reading = {
       soil_moisture: soilMoisture,
       receivedAt: now,
     };
-    this.connected = true;
-    this.persist();
+    state.connected = true;
+
+    await savePersistedState(state);
   }
 
   async getStatus(): Promise<SensorStatus> {
-    await this.hydrate();
+    const state = (await loadPersistedState()) ?? emptyState();
 
     const { message, zone, zoneDurationMs } = buildStatus(
-      this.connected,
-      this.reading,
-      this.zone,
-      this.zoneEnteredAt,
+      state.connected,
+      state.reading,
+      state.zone,
+      state.zoneEnteredAt,
     );
 
     return {
-      connected: this.connected,
-      reading: this.reading,
+      connected: state.connected,
+      reading: state.reading,
       message,
       zone,
       zoneDurationMs,
