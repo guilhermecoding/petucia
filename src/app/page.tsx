@@ -4,7 +4,7 @@ import { PetuciaStatus } from "./components/petucia-status";
 
 export default function Home() {
   return (
-    <div className="flex min-h-full flex-row items-center gap-8 p-6">
+    <div className="flex min-h-screen flex-row items-center gap-8 p-6 md:p-10">
       <div className="grow flex-1">
         <PetuciaStatus />
       </div>

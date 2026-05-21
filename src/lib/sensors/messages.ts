@@ -1,34 +1,30 @@
 import type { MoistureZone, PetuciaMessage, SensorReading } from "./types";
 
-/** Valores altos no analógico = solo mais seco (padrão dos sensores resistivos). */
-const DRY_THRESHOLD = 800;
-const WARNING_THRESHOLD = 500;
+/** Valores altos no analógico = solo mais seco. */
+const WELL_BELOW = 600;
+const THIRSTY_ABOVE = 900;
 
-const THIRSTY_AFTER_MS = 60_000;
-const WARNING_AFTER_MS = 30_000;
+/** Abaixo disso a umidade exibida fica em 100%. */
+export const SOIL_MOISTURE_FULL = 600;
+/** Leitura bruta em que a umidade exibida é 0%. */
+export const SOIL_MOISTURE_DRY = 1000;
+
+export function soilMoistureToPercent(raw: number): number {
+  if (raw <= SOIL_MOISTURE_FULL) return 100;
+  if (raw >= SOIL_MOISTURE_DRY) return 0;
+  const percent = 100 - ((raw - SOIL_MOISTURE_FULL) / (SOIL_MOISTURE_DRY - SOIL_MOISTURE_FULL)) * 100;
+  return Math.round(percent);
+}
 
 export function soilMoistureToZone(value: number): MoistureZone {
-  if (value >= DRY_THRESHOLD) return "thirsty";
-  if (value >= WARNING_THRESHOLD) return "warning";
+  if (value > THIRSTY_ABOVE) return "thirsty";
+  if (value >= WELL_BELOW) return "warning";
   return "comfortable";
 }
 
-export function getMessageForZone(
-  zone: MoistureZone,
-  zoneDurationMs: number,
-): string {
-  if (zone === "thirsty" && zoneDurationMs >= THIRSTY_AFTER_MS) {
-    return "Estou com sede 🥵";
-  }
-  if (zone === "warning" && zoneDurationMs >= WARNING_AFTER_MS) {
-    return "Estou bem, mas estou ficando com sede 😕";
-  }
-  if (zone === "thirsty" && zoneDurationMs < THIRSTY_AFTER_MS) {
-    return "Estou bem, mas estou ficando com sede 😕";
-  }
-  if (zone === "comfortable") {
-    return "Estou bem tranquila 😌";
-  }
+export function getMessageForZone(zone: MoistureZone): PetuciaMessage {
+  if (zone === "thirsty") return "Estou com sede 🥵";
+  if (zone === "warning") return "Estou bem, mas estou ficando com sede 😕";
   return "Estou bem tranquila 😌";
 }
 
@@ -38,7 +34,7 @@ export function buildStatus(
   zone: MoistureZone | null,
   zoneEnteredAt: number | null,
 ): {
-  message: string;
+  message: PetuciaMessage;
   zone: MoistureZone | null;
   zoneDurationMs: number;
 } {
@@ -63,7 +59,7 @@ export function buildStatus(
   const zoneDurationMs = Date.now() - zoneEnteredAt;
 
   return {
-    message: getMessageForZone(zone, zoneDurationMs),
+    message: getMessageForZone(zone),
     zone,
     zoneDurationMs,
   };

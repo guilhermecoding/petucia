@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { soilMoistureToPercent } from "@/lib/sensors/messages";
 import type { SensorStatus } from "@/lib/sensors/types";
 
 const POLL_INTERVAL_MS = 3_000;
@@ -38,44 +39,49 @@ export function PetuciaStatus() {
   }, []);
 
   if (error) {
-    return <p className="text-sm text-red-600">{error}</p>;
+    return <p className="text-sm text-red-200 drop-shadow-sm">{error}</p>;
   }
 
   if (!status) {
-    return <p className="text-sm text-neutral-500">Carregando...</p>;
+    return <p className="text-sm text-white/70 drop-shadow-sm">Carregando...</p>;
   }
 
   const reading = status.reading;
-  const waitingForReading =
-    status.connected && !reading;
+  const waitingForReading = status.connected && !reading;
 
   return (
-    <div className="space-y-3">
-      <p className="text-6xl font-bold leading-snug">{status.message}</p>
+    <div className="space-y-3 drop-shadow-md">
+      <p className="text-4xl font-bold leading-snug text-white md:text-6xl">
+        {status.message}
+      </p>
 
       {status.connected && (
-        <p className="text-xs font-medium text-green-700">Arduino conectado</p>
+        <p className="text-xs font-medium text-emerald-200">Arduino conectado</p>
       )}
 
       {reading ? (
-        <p className="text-sm text-neutral-600">
+        <p className="text-sm text-white/85">
           Umidade do solo:{" "}
-          <span className="font-mono">{reading.soil_moisture}</span>
+          <span className="font-mono font-medium text-white">
+            {soilMoistureToPercent(reading.soil_moisture)}%
+          </span>
         </p>
       ) : waitingForReading ? (
-        <p className="text-sm text-neutral-500">
+        <p className="text-sm text-white/75">
           Aguardando primeira leitura do Arduino (alguns segundos).
         </p>
       ) : !status.connected ? (
-        <p className="text-sm text-neutral-500">
+        <p className="text-sm text-white/75">
           Conecte o Arduino via USB e defina{" "}
-          <code className="rounded bg-neutral-100 px-1">ARDUINO_PORT</code> no
-          .env.local (ex.: COM6). Reinicie o servidor depois.
+          <code className="rounded bg-white/20 px-1 text-white">
+            ARDUINO_PORT
+          </code>{" "}
+          no .env.local (ex.: COM6). Reinicie o servidor depois.
         </p>
       ) : null}
 
       {!status.connected && reading && (
-        <p className="text-xs text-amber-700">Arduino desconectado.</p>
+        <p className="text-xs text-amber-200">Arduino desconectado.</p>
       )}
     </div>
   );
