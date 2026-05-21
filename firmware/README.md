@@ -1,25 +1,26 @@
 # Firmware Petucia
 
-O sketch usa apenas o sensor de umidade do solo (pino **A0**) e a biblioteca **ArduinoJson**.
+Sketch mínimo: sensor de umidade do solo no pino **A0**, saída JSON na serial.
 
-## Instalar no Arduino IDE
+## Biblioteca
 
-1. **Sketch → Incluir Biblioteca → Gerenciar Bibliotecas…**
-2. Instale **ArduinoJson** (autor: Benoit Blanchon).
-3. Compile e faça upload.
+**Arduino IDE → Gerenciar Bibliotecas → ArduinoJson** (Benoit Blanchon).
 
-## Saída serial
+## Upload
 
-A cada 10 s o Arduino envia uma linha JSON, por exemplo:
+1. Abra `firmware.ino` (pasta deve chamar-se `firmware`).
+2. Conecte o sensor em **A0**.
+3. Placa e porta corretas → **Upload**.
+
+## Serial
+
+- **9600** baud
+- Primeira linha JSON logo ao ligar; depois a cada **3 s**
+
+Exemplo:
 
 ```json
 {"soil_moisture":512}
 ```
 
-Baud rate: **9600**. A primeira leitura é enviada logo ao ligar; as seguintes, a cada 10 s.
-
-## Ler no Next.js
-
-`pnpm dev` sobe o site e a leitura serial juntos (porta em `ARDUINO_PORT` no `.env.local`).
-
-Feche o Monitor Serial do Arduino IDE antes — só um programa pode usar a COM.
+Feche o Monitor Serial do IDE antes de rodar `pnpm dev` ou `pnpm start` no computador.
